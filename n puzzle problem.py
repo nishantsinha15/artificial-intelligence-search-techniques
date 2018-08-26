@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import math
 import queue
@@ -54,10 +56,10 @@ def get_hash(board, dim):
     return a
 
 
-def a_star(board, dim):
+def a_star(board, dim, max_cost=sys.maxsize):
     heap = []
     q = queue.PriorityQueue()
-    q.put((f(board,dim), board))
+    q.put((f(board, dim), board))
     iter = 0
     visited = set([])
     visited.add(get_hash(board, dim))
@@ -73,17 +75,22 @@ def a_star(board, dim):
         # print('Current = ', current)
         if is_success(current, dim):
             print('Game Won in ', iter, ' iterations')
+            print('Depth = ', g[get_hash(current, dim)])
             print(current)
-            return
+            return 1
+
+        if g[get_hash(current, dim)] + 1 > max_cost:
+            return 2
         next_states = get_board_states(current, dim)
         for state in next_states:
             # print(state)
             if get_hash(state, dim) not in visited:
-                parent[ get_hash(state, dim) ] = current
-                g[ get_hash(state, dim) ] = temp = g[ get_hash(current, dim) ] + 1
+                parent[get_hash(state, dim)] = current
+                g[get_hash(state, dim)] = temp = g[get_hash(current, dim)] + 1
                 q.put((f(state, dim) + temp, state))
                 visited.add(get_hash(state, dim))
     print("No solution found for ", iter, " iterations!")
+    return 3
 
 
 def bfs(board, dim):
@@ -92,6 +99,8 @@ def bfs(board, dim):
     iter = 0
     visited = set([])
     visited.add(get_hash(board, dim))
+    level = {}
+    level[get_hash(board, dim)] = 0
     while not q.empty():
         iter += 1
         # print("Iteration ", iter)
@@ -99,6 +108,7 @@ def bfs(board, dim):
         # print(current)
         if is_success(current, dim):
             print('Game Won in ', iter, ' iterations')
+            print('Depth  = ', level[get_hash(current, dim)])
             print(current)
             return
         next_states = get_board_states(current, dim)
@@ -107,6 +117,7 @@ def bfs(board, dim):
             if get_hash(state, dim) not in visited:
                 q.put(state)
                 visited.add(get_hash(state, dim))
+                level[get_hash(state, dim)] = level[get_hash(current, dim)] + 1
     print("No solution found for ", iter, "iterations!")
 
 
@@ -140,18 +151,25 @@ def f(board, dim):
     distance = 0
     for i in range(dim):
         for j in range(dim):
-            if( board[i][j] != 0):
+            if (board[i][j] != 0):
                 distance += abs(dic[board[i][j]][0] - i) + abs(dic[board[i][j]][1] - j)
     # print(distance)
     return distance
 
 
-n = int(input("Enter the length "))
-# n = 8
+def ida_star(board, dim):
+    for cost in range(1, 500):
+        print("Trying for cost = ", cost)
+        if a_star(board, dim, cost) == 1 or a_star(board, dim, cost) == 3:
+            return
+
+
+# n = int(input("Enter the length "))
+n = 3
 dim = int(math.sqrt(n + 1))
 board = generate_puzzle(n, dim)
-# board = [ [1,8,2],[0,4,3],[7,6,5] ]
+# board = [[8, 1, 4], [2, 6, 7], [0, 5, 3]]
 print(board)
 # dfs(board, dim, 1)
-a_star(board, dim)
 bfs(board, dim)
+ida_star(board, dim)
