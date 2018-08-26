@@ -57,7 +57,6 @@ def get_hash(board, dim):
 
 
 def a_star(board, dim, max_cost=sys.maxsize):
-    heap = []
     q = queue.PriorityQueue()
     q.put((f(board, dim), board))
     iter = 0
