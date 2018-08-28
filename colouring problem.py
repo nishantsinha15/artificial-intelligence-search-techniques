@@ -1,4 +1,5 @@
 import queue
+import time
 
 import numpy as np
 
@@ -84,12 +85,19 @@ def a_star(board, dim):
     visited.add(get_hash(board, dim))
     g = {}
     g[get_hash(board,dim)] = 0
+    big = 0
 
     while not q.empty():
+        if q.qsize() > big:
+            big = q.qsize()
         iter += 1
+        if iter%100 == 0:
+            print('Iteration ', iter)
         weight, garbage, current = q.get()
         if is_success(current, dim):
             print('Game Won in ', iter, ' iterations')
+            print('Number of swaps = ', g[get_hash(current,dim)])
+            print('Memory = ', big)
             # print('Depth  = ', level[get_hash(current, dim)])
             print(current)
             return
@@ -112,15 +120,21 @@ def bfs(board, dim):
     q = queue.Queue()
     q.put(board)
     visited = set([])
+    big = 0
     iter = 0
+    g = {}
+    g[get_hash(board,dim)] = 0
     while not q.empty():
+        if q.qsize() > big:
+            big = q.qsize()
         iter+=1
         if iter % 100 == 0:
             print('Iteration ', iter)
         current = q.get()
         if is_success(current, dim):
             print('Game Won in ', iter, ' iterations')
-            # print('Depth  = ', level[get_hash(current, dim)])
+            print('Number of swaps  = ', g[get_hash(current, dim)])
+            print('Memory = ', big)
             print(current)
             return
         a = []
@@ -132,10 +146,25 @@ def bfs(board, dim):
         for state in a:
             if get_hash(state, dim) not in visited:
                 q.put(state)
+                g[get_hash(state,dim)] = g[get_hash(current,dim)] + 1
                 visited.add(get_hash(state, dim))
     print("No solution found for ", iter, "iterations!")
 
 
-board = create_board(10)
-print('Initial = ', board)
-bfs(board, 3)
+def execute(board, dim):
+    start = time.time()
+    a_star(board, dim)
+    end = time.time()
+    print('A-star took = ', end - start, ' seconds')
+
+    start = time.time()
+    bfs(board, dim)
+    end = time.time()
+    print('BFS took = ', end-start, ' seconds')
+
+
+
+n = 7
+board = create_board(n)
+print(board)
+execute(board, n)
